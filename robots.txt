@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://nabeelali.is-a.dev/sitemap.xml
