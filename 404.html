@@ -84,7 +84,6 @@ a:hover { text-decoration: underline; }
   border-radius: 999px; padding: .05rem .55rem; font-size: .78rem; font-weight: 800;
   margin-inline-start: .5rem; vertical-align: middle;
 }
-.msg-date { font-size: .78rem; color: var(--muted); }
 .mode-row { display: flex; gap: .6rem; margin-bottom: 1.1rem; }
 .mode-btn {
   flex: 1; padding: .8rem .5rem; border-radius: 12px; cursor: pointer;
@@ -100,9 +99,10 @@ a:hover { text-decoration: underline; }
 }
 .result-email { font-weight: 800; font-size: 1.1rem; word-break: break-all; color: #166534; }
 .result-actions { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; margin-top: .8rem; }
-.msg-head { display: flex; justify-content: space-between; gap: .8rem; align-items: baseline; }
-.msg-from { font-weight: 800; word-break: break-all; }
-.msg-time { color: var(--muted); font-size: .85rem; white-space: nowrap; }
+.msg-head { display: block; }
+.msg-from { display: block; font-weight: 800; word-break: break-all; }
+.msg-time { color: var(--muted); font-size: .85rem; }
+.msg-meta { display: flex; justify-content: space-between; align-items: center; gap: .6rem; flex-wrap: wrap; margin-top: .15rem; }
 .msg-subject { color: var(--text); margin-top: .1rem; word-break: break-word; }
 .msg-subject.empty { color: var(--muted); }
 .msg-snippet { color: var(--muted); font-size: .9rem; margin-top: .3rem; word-break: break-word; }
@@ -115,7 +115,7 @@ a:hover { text-decoration: underline; }
 }
 .code-chip:hover { background: #dbeafe; }
 .code-chip .copy-hint { font-size: .75rem; font-weight: 600; color: var(--muted); font-family: 'Cairo', sans-serif; }
-.detail-meta { color: var(--muted); font-size: .93rem; margin-bottom: 1rem; }
+.detail-meta { color: var(--muted); font-size: .93rem; margin-bottom: 1rem; overflow-wrap: anywhere; }
 .detail-meta strong { color: var(--text); }
 .detail-block { margin: 1.1rem 0; }
 .detail-block h3 { font-size: 1.05rem; margin-bottom: .5rem; }
@@ -229,6 +229,20 @@ function formatDate(ts) {
   const p = n => String(n).padStart(2, '0');
   return p(d.getDate()) + '/' + p(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
 }
+function isDuplicateSnippet(subject, snippet) {
+  const norm = s => s.replace(/\s+/g, ' ').trim();
+  const a = norm(subject), b = norm(snippet).slice(0, 120);
+  if (a.length < 10 || b.length < 10) return false;
+  let best = 0;
+  for (let i = 0; i < a.length; i++) {
+    for (let j = 0; j < b.length; j++) {
+      let k = 0;
+      while (i + k < a.length && j + k < b.length && a[i + k] === b[j + k]) k++;
+      if (k > best) best = k;
+    }
+  }
+  return best >= 20;
+}
 async function copyText(text, el) {
   try { await navigator.clipboard.writeText(text); }
   catch (e) {
@@ -316,11 +330,12 @@ function renderList(email, messages, silent) {
       const snippet = asText(m.text || m.textBody || '').replace(/\s+/g, ' ').slice(0, 120);
       const isNewMsg = isNew(m.receivedAt);
       const dateStr = formatDate(m.receivedAt);
+      const showSnippet = snippet && !isDuplicateSnippet(subject, snippet);
       return '<div class="msg' + (isNewMsg ? ' is-new' : '') + '" onclick="openMessage(' + i + ')">' +
-        '<div class="msg-head"><span class="msg-from">' + esc(from || 'غير معروف') + (isNewMsg ? '<span class="new-badge">جديدة</span>' : '') + '</span>' +
-        '<span class="msg-time">' + esc(timeAgo(m.receivedAt)) + (dateStr ? '<br><span class="msg-date">' + esc(dateStr) + '</span>' : '') + '</span></div>' +
+        '<div class="msg-head"><span class="msg-from" dir="auto">' + esc(from || 'غير معروف') + '</span>' +
+        '<span class="msg-meta"><span class="msg-time">' + esc(timeAgo(m.receivedAt)) + (dateStr ? ' • ' + esc(dateStr) : '') + '</span>' + (isNewMsg ? '<span class="new-badge">جديدة</span>' : '') + '</span></div>' +
         '<div class="msg-subject' + (subject ? '' : ' empty') + '">' + esc(subject || 'بدون عنوان') + '</div>' +
-        (snippet ? '<div class="msg-snippet">' + esc(snippet) + '</div>' : '') +
+        (showSnippet ? '<div class="msg-snippet">' + esc(snippet) + '</div>' : '') +
         codesHTML(m) +
         '</div>';
     }).join('');
