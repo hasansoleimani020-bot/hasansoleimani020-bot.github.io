@@ -83,6 +83,21 @@ a:hover { text-decoration: underline; }
   margin-inline-start: .5rem; vertical-align: middle;
 }
 .msg-date { font-size: .78rem; color: var(--muted); }
+.mode-row { display: flex; gap: .6rem; margin-bottom: 1.1rem; }
+.mode-btn {
+  flex: 1; padding: .8rem .5rem; border-radius: 12px; cursor: pointer;
+  border: 2px solid var(--border); background: #fff; color: var(--text);
+  font-family: inherit; font-size: 1rem; font-weight: 800; text-align: center;
+}
+.mode-btn.active { border-color: var(--accent); background: #eef2ff; color: #1e3a8a; }
+.domain-pick { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.1rem; justify-content: center; }
+.domain-pick .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.result-box {
+  background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px;
+  padding: 1rem; margin-top: 1.1rem; text-align: center;
+}
+.result-email { font-weight: 800; font-size: 1.1rem; word-break: break-all; color: #166534; }
+.result-actions { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; margin-top: .8rem; }
 .msg-head { display: flex; justify-content: space-between; gap: .8rem; align-items: baseline; }
 .msg-from { font-weight: 800; word-break: break-all; }
 .msg-time { color: var(--muted); font-size: .85rem; white-space: nowrap; }
@@ -249,7 +264,8 @@ function fillDomain(domain) {
 function otherEmailFormHTML() {
   return '<form class="mini-form" onsubmit="openOther(event)">' +
     '<input type="text" id="otherEmail" dir="ltr" autocomplete="off" placeholder="إيميل ثاني… مثال: name@voewo.com">' +
-    '<button type="submit" class="btn btn-ghost">افتح</button></form>';
+    '<button type="submit" class="btn btn-ghost">افتح</button></form>' +
+    '<p style="text-align:center;margin-top:-.6rem;margin-bottom:1.1rem"><a href="/email">✉️ أو أنشئ إيميل مؤقت جديد</a></p>';
 }
 function openOther(event) {
   event.preventDefault();
@@ -312,7 +328,6 @@ function renderList(email, messages, silent) {
     '<div class="email-line"><span class="email-addr" dir="ltr">' + esc(email) + '</span>' +
     '<button class="btn btn-small btn-ghost" onclick="copyText(\'' + esc(email) + '\', this)">نسخ الإيميل</button>' +
     '<button class="btn btn-small" onclick="loadInbox(currentEmail)">🔄 تحديث</button></div>' +
-    otherEmailFormHTML() +
     '<p class="sub">' + (messages.length ? messages.length + (messages.length === 1 ? ' رسالة' : ' رسائل') + ' — الأحدث أولاً' : '') + '</p>' +
     body;
 }
@@ -399,8 +414,67 @@ function backToList() {
   renderList(currentEmail, currentMessages);
   startRefresh();
 }
+let createMode = 'random';
+let createDomain = 'voewo.com';
+function randomLocal(n) {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const buf = new Uint32Array(n);
+  (window.crypto || window.msCrypto).getRandomValues(buf);
+  let s = '';
+  for (let i = 0; i < n; i++) s += chars[buf[i] % chars.length];
+  return s;
+}
+function setCreateMode(mode) {
+  createMode = mode;
+  renderCreateEmail();
+}
+function setCreateDomain(d) {
+  const prev = document.getElementById('createName');
+  const val = prev ? prev.value : '';
+  createDomain = d;
+  renderCreateEmail();
+  const next = document.getElementById('createName');
+  if (next) next.value = val;
+}
+function renderCreateEmail() {
+  stopRefresh();
+  document.title = 'إنشاء إيميل مؤقت | نبيل علي';
+  const fixed = createMode === 'fixed';
+  view.innerHTML =
+    '<h1>✉️ إنشاء إيميل مؤقت</h1>' +
+    '<p class="sub">أنشئ عنوان إيميل مؤقت مجاناً — استخدمه للتسجيل واستلم الرسائل ورموز التحقق هنا.</p>' +
+    '<div class="mode-row">' +
+    '<button type="button" class="mode-btn' + (!fixed ? ' active' : '') + '" onclick="setCreateMode(\'random\')">🎲 عشوائي</button>' +
+    '<button type="button" class="mode-btn' + (fixed ? ' active' : '') + '" onclick="setCreateMode(\'fixed\')">🎯 دومين ثابت</button></div>' +
+    (fixed ?
+      '<p class="sub">اختر الدومين:</p><div class="domain-pick">' + VISIBLE_DOMAINS.map(d =>
+        '<span class="chip' + (d === createDomain ? ' active' : '') + '" dir="ltr" onclick="setCreateDomain(\'' + d + '\')">' + d + '</span>').join('') + '</div>' +
+      '<div class="mini-form"><input type="text" id="createName" dir="ltr" autocomplete="off" placeholder="اسم الإيميل (اختياري — اتركه فارغاً لاسم عشوائي)"></div>'
+      : '<p class="sub">اسم ودومين عشوائيين — بضغطة واحدة.</p>') +
+    '<div style="text-align:center"><button class="btn" onclick="doCreateEmail()">✉️ إنشاء الإيميل</button></div>' +
+    '<div id="createResult"></div>' +
+    '<p style="text-align:center;margin-top:1.2rem"><a href="/">⬅️ الرئيسية</a></p>';
+}
+function doCreateEmail() {
+  const nameInput = document.getElementById('createName');
+  let local = nameInput ? nameInput.value.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '') : '';
+  if (!local) local = randomLocal(10);
+  const domain = createMode === 'fixed' ? createDomain : VISIBLE_DOMAINS[Math.floor(Math.random() * VISIBLE_DOMAINS.length)];
+  const email = local + '@' + domain;
+  const box = document.getElementById('createResult');
+  if (!box) return;
+  box.innerHTML =
+    '<div class="result-box"><p>إيميلك المؤقت:</p>' +
+    '<div class="result-email" dir="ltr">' + esc(email) + '</div>' +
+    '<div class="result-actions">' +
+    '<button class="btn btn-small" onclick="copyText(\'' + esc(email) + '\', this)">نسخ الإيميل</button>' +
+    '<a class="btn btn-small" href="/' + encodeURIComponent(email) + '">📬 افتح الصندوق</a>' +
+    '<button class="btn btn-small btn-ghost" onclick="doCreateEmail()">🎲 إنشاء واحد ثاني</button>' +
+    '</div></div>';
+}
 (function init() {
   const email = emailFromUrl();
+  if (email === 'email') { renderCreateEmail(); return; }
   if (!isEmailShape(email)) { renderNotFound(); return; }
   const domain = email.split('@')[1];
   if (VISIBLE_DOMAINS.indexOf(domain) === -1) { renderDomainUnavailable(email, domain); return; }
