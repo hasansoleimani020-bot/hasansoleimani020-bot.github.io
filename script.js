@@ -39,6 +39,29 @@ document.querySelectorAll('.nav-links a').forEach(a => {
   a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open'));
 });
 
+// Free services: open a temp-email inbox at /<email>
+function openInbox(event) {
+  event.preventDefault();
+  const input = document.getElementById('inboxEmail');
+  const email = input.value.trim().toLowerCase().replace(/^mailto:/i, '');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { input.focus(); return; }
+  window.location.href = '/' + email;
+}
+
+// Clicking a domain chip fills the inbox input with that domain
+(function initDomainChips() {
+  const wrap = document.querySelector('.service-domains');
+  if (!wrap) return;
+  wrap.addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    const input = document.getElementById('inboxEmail');
+    const local = input.value.trim().split('@')[0].replace(/[^a-z0-9._+-]/gi, '');
+    input.value = (local || 'name') + '@' + chip.textContent.trim();
+    input.focus();
+  });
+})();
+
 // Contact form: opens the visitor's email app addressed to Nabeel
 function sendMail(event) {
   event.preventDefault();

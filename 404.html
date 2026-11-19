@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>صندوق البريد المؤقت | نبيل علي</title>
+<meta name="description" content="اعرض رسائل بريدك المؤقت — المرسل والعنوان ورمز التحقق.">
+<link rel="icon" href="/images/profile.jpg" type="image/jpeg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --muted: #64748b;
+  --accent: #2563eb; --accent-dark: #1d4ed8; --border: #e2e8f0; --radius: 18px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Cairo', system-ui, sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.8; min-height: 100vh;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.top {
+  max-width: 720px; margin: 0 auto; padding: 1rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.brand { font-size: 1.3rem; font-weight: 800; color: var(--text); }
+.brand:hover { text-decoration: none; }
+.home-link { font-weight: 700; font-size: .95rem; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 1rem 3rem; }
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.6rem;
+  box-shadow:
+    0 12px 26px rgba(15,23,42,.09),
+    0 3px 8px rgba(15,23,42,.05),
+    inset 0 1px 0 rgba(255,255,255,.95),
+    inset 0 -3px 8px rgba(15,23,42,.03);
+}
+.card h1 { font-size: 1.4rem; margin-bottom: .2rem; }
+.sub { color: var(--muted); font-size: .95rem; margin-bottom: 1rem; }
+.email-line {
+  display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+  background: #eef2ff; border: 1px solid #e0e7ff; border-radius: 12px;
+  padding: .7rem 1rem; margin-bottom: 1.1rem;
+}
+.email-addr { font-weight: 800; font-size: 1.05rem; word-break: break-all; color: #1e3a8a; }
+.btn {
+  display: inline-block; padding: .55rem 1.2rem; border-radius: 999px;
+  font-weight: 700; font-family: inherit; cursor: pointer;
+  border: 2px solid transparent; font-size: .95rem; background: var(--accent); color: #fff;
+}
+.btn:hover { background: var(--accent-dark); text-decoration: none; }
+.btn-ghost { background: #fff; color: var(--accent); border-color: var(--border); }
+.btn-ghost:hover { background: #eef2ff; }
+.btn-small { padding: .35rem .9rem; font-size: .88rem; }
+.mini-form { display: flex; gap: .6rem; margin-bottom: 1.2rem; }
+.mini-form input {
+  flex: 1; min-width: 0; padding: .7rem 1rem;
+  border: 1px solid var(--border); border-radius: 10px;
+  font-family: inherit; font-size: 1rem;
+}
+.mini-form input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+.status { text-align: center; padding: 2rem 0; color: var(--muted); }
+.spinner {
+  width: 34px; height: 34px; margin: 0 auto 1rem;
+  border: 3px solid #dbeafe; border-top-color: var(--accent);
+  border-radius: 50%; animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.msg {
+  border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.1rem;
+  margin-bottom: .8rem; cursor: pointer; transition: transform .2s ease, box-shadow .2s ease;
+  background: #fff;
+}
+.msg:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(15,23,42,.1); }
+.msg-head { display: flex; justify-content: space-between; gap: .8rem; align-items: baseline; }
+.msg-from { font-weight: 800; word-break: break-all; }
+.msg-time { color: var(--muted); font-size: .85rem; white-space: nowrap; }
+.msg-subject { color: var(--text); margin-top: .1rem; word-break: break-word; }
+.msg-subject.empty { color: var(--muted); }
+.msg-snippet { color: var(--muted); font-size: .9rem; margin-top: .3rem; word-break: break-word; }
+.codes { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .7rem; }
+.code-chip {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: #eef2ff; border: 1px solid #c7d2fe; color: #1e3a8a;
+  border-radius: 8px; padding: .25rem .6rem; font-weight: 800;
+  font-family: ui-monospace, 'Cairo', monospace; font-size: 1rem; cursor: pointer;
+}
+.code-chip:hover { background: #dbeafe; }
+.code-chip .copy-hint { font-size: .75rem; font-weight: 600; color: var(--muted); font-family: 'Cairo', sans-serif; }
+.detail-meta { color: var(--muted); font-size: .93rem; margin-bottom: 1rem; }
+.detail-meta strong { color: var(--text); }
+.detail-block { margin: 1.1rem 0; }
+.detail-block h3 { font-size: 1.05rem; margin-bottom: .5rem; }
+.link-row {
+  display: flex; gap: .5rem; align-items: center; margin-bottom: .5rem;
+  background: #f8fafc; border: 1px solid var(--border); border-radius: 10px; padding: .6rem .8rem;
+}
+.link-row a { flex: 1; min-width: 0; word-break: break-all; font-size: .92rem; }
+.body-box {
+  background: #f8fafc; border: 1px solid var(--border); border-radius: 12px;
+  padding: 1rem; white-space: pre-wrap; word-break: break-word;
+  font-size: .95rem; max-height: 420px; overflow-y: auto;
+}
+.chips { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; margin-top: .8rem; }
+.chip {
+  padding: .4rem .95rem; border-radius: 999px; background: #eef2ff;
+  border: 1px solid #e0e7ff; color: #1e3a8a; font-weight: 700; font-size: .92rem;
+  cursor: pointer; transition: transform .2s ease, background .2s ease, color .2s ease;
+}
+.chip:hover { transform: translateY(-3px); background: var(--accent); color: #fff; border-color: var(--accent); }
+.privacy { text-align: center; color: var(--muted); font-size: .9rem; margin-top: 1.4rem; }
+.error-box { text-align: center; padding: 1.5rem 0; }
+.error-box p { color: var(--muted); margin-bottom: 1rem; }
+.back-row { margin-bottom: 1rem; }
+@media (max-width: 640px) {
+  .card { padding: 1.2rem; }
+  .mini-form { flex-direction: column; }
+  .mini-form .btn { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
+  * { transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <a href="/" class="brand">نبيل علي</a>
+  <a href="/#services" class="home-link">خدمات مجانية</a>
+</header>
+<main class="wrap">
+  <div class="card" id="view"></div>
+  <p class="privacy">⚠️ الصناديق عامة — أي شخص يعرف العنوان يقدر يشوف رسايله. لا تستخدمها للمعلومات السرية.</p>
+</main>
+<script>
+// Inbox viewer — served by GitHub Pages as 404.html for /<email> paths.
+// API_BASE is the Netlify backend URL (https://nabeel-inbox.netlify.app).
+const API_BASE = 'https://nabeel-inbox.netlify.app';
+const VISIBLE_DOMAINS = ["gmail.com","gmail10p.com","googlemail.com","oegmail.com","oemails.com","oletters.com","rommiui.com","suiemail.com","tempmail.edu.pl","voewo.com","yanemail.com"];
+const REFRESH_MS = 30000;
+
+const view = document.getElementById('view');
+let currentEmail = '';
+let currentMessages = [];
+let refreshTimer = null;
+let loading = false;
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function asText(v) {
+  if (typeof v === 'string') return v;
+  if (v && typeof v === 'object') return v.code || v.value || v.text || v.url || v.href || '';
+  return v == null ? '' : String(v);
+}
+function safeUrl(u) {
+  const s = asText(u).trim();
+  return /^https?:\/\/[^\s]+$/i.test(s) ? s : '';
+}
+function isEmailShape(s) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+}
+function emailFromUrl() {
+  const params = new URLSearchParams(location.search);
+  const q = (params.get('email') || '').trim();
+  if (q) return q.toLowerCase().replace(/^mailto:/i, '');
+  let p = location.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
+  try { p = decodeURIComponent(p); } catch (e) {}
+  return p.toLowerCase().replace(/^mailto:/i, '');
+}
+function timeAgo(ts) {
+  let t = (typeof ts === 'number' && ts < 1e12) ? ts * 1000 : ts;
+  const d = new Date(t);
+  if (isNaN(d.getTime())) return '';
+  const diff = Date.now() - d.getTime();
+  if (diff < 0) return 'الآن';
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return 'الآن';
+  if (min === 1) return 'قبل دقيقة';
+  if (min === 2) return 'قبل دقيقتين';
+  if (min < 60) return 'قبل ' + min + (min <= 10 ? ' دقائق' : ' دقيقة');
+  const h = Math.floor(min / 60);
+  if (h === 1) return 'قبل ساعة';
+  if (h === 2) return 'قبل ساعتين';
+  if (h < 24) return 'قبل ' + h + (h <= 10 ? ' ساعات' : ' ساعة');
+  const days = Math.floor(h / 24);
+  if (days === 1) return 'قبل يوم';
+  if (days === 2) return 'قبل يومين';
+  return 'قبل ' + days + (days <= 10 ? ' أيام' : ' يوم');
+}
+async function copyText(text, el) {
+  try { await navigator.clipboard.writeText(text); }
+  catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e2) {}
+    ta.remove();
+  }
+  if (el) {
+    const old = el.textContent;
+    el.textContent = 'تم النسخ ✓';
+    setTimeout(() => { el.textContent = old; }, 1200);
+  }
+}
+function stopRefresh() {
+  if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+}
+function startRefresh() {
+  stopRefresh();
+  refreshTimer = setInterval(() => {
+    if (!document.hidden && currentEmail) loadInbox(currentEmail, true);
+  }, REFRESH_MS);
+}
+function domainChipsHTML() {
+  return '<div class="chips">' + VISIBLE_DOMAINS.map(d =>
+    '<span class="chip" dir="ltr" onclick="fillDomain(\'' + d + '\')">' + d + '</span>').join('') + '</div>';
+}
+function fillDomain(domain) {
+  const input = document.getElementById('otherEmail');
+  if (!input) return;
+  const local = input.value.trim().split('@')[0].replace(/[^a-z0-9._+-]/gi, '');
+  input.value = (local || 'name') + '@' + domain;
+  input.focus();
+}
+function otherEmailFormHTML() {
+  return '<form class="mini-form" onsubmit="openOther(event)">' +
+    '<input type="text" id="otherEmail" dir="ltr" autocomplete="off" placeholder="إيميل ثاني… مثال: name@voewo.com">' +
+    '<button type="submit" class="btn btn-ghost">افتح</button></form>';
+}
+function openOther(event) {
+  event.preventDefault();
+  const input = document.getElementById('otherEmail');
+  const email = (input.value || '').trim().toLowerCase().replace(/^mailto:/i, '');
+  if (!isEmailShape(email)) { input.focus(); return; }
+  location.href = '/' + email;
+}
+function renderNotFound() {
+  stopRefresh();
+  document.title = 'الصفحة غير موجودة | نبيل علي';
+  view.innerHTML =
+    '<h1>الصفحة غير موجودة</h1>' +
+    '<p class="sub">الرابط اللي فتحته مو صفحة بالموقع. إذا تريد تشوف رسائل إيميل مؤقت، اكتب عنوانه هنا:</p>' +
+    otherEmailFormHTML() +
+    '<p class="sub" style="text-align:center">الدومينات المتوفرة:</p>' +
+    domainChipsHTML() +
+    '<p style="text-align:center;margin-top:1.2rem"><a href="/">⬅️ الرئيسية</a></p>';
+}
+function renderDomainUnavailable(email, domain) {
+  stopRefresh();
+  document.title = 'الدومين غير متوفر | نبيل علي';
+  view.innerHTML =
+    '<h1>هذا الدومين غير متوفر</h1>' +
+    '<p class="sub"><span dir="ltr">' + esc(domain) + '</span> مو من الدومينات الظاهرة بالخدمة حالياً. الدومينات المتوفرة:</p>' +
+    otherEmailFormHTML() +
+    domainChipsHTML() +
+    '<p style="text-align:center;margin-top:1.2rem"><a href="/">⬅️ الرئيسية</a></p>';
+}
+function codesHTML(msg) {
+  const codes = (msg.codes || []).map(asText).filter(Boolean);
+  if (!codes.length) return '';
+  return '<div class="codes">' + codes.map(c =>
+    '<span class="code-chip" onclick="event.stopPropagation();copyText(\'' + esc(c).replace(/'/g, "\\'") + '\', this)">' + esc(c) + ' <span class="copy-hint">نسخ</span></span>').join('') + '</div>';
+}
+function renderList(email, messages, silent) {
+  currentMessages = messages;
+  document.title = '📬 ' + email + ' | نبيل علي';
+  let body = '';
+  if (!messages.length) {
+    body = '<div class="status"><p style="font-size:2rem">📭</p><p>لم تصل رسالة بعد.</p><p>جرّب التحديث بعد شوية — الصفحة تتحدث تلقائياً كل 30 ثانية.</p></div>';
+  } else {
+    body = messages.map((m, i) => {
+      const from = asText(m.from || m.sender);
+      const subject = asText(m.subject);
+      const snippet = asText(m.text || m.textBody || '').replace(/\s+/g, ' ').slice(0, 120);
+      return '<div class="msg" onclick="openMessage(' + i + ')">' +
+        '<div class="msg-head"><span class="msg-from">' + esc(from || 'غير معروف') + '</span>' +
+        '<span class="msg-time">' + esc(timeAgo(m.receivedAt)) + '</span></div>' +
+        '<div class="msg-subject' + (subject ? '' : ' empty') + '">' + esc(subject || 'بدون عنوان') + '</div>' +
+        (snippet ? '<div class="msg-snippet">' + esc(snippet) + '</div>' : '') +
+        codesHTML(m) +
+        '</div>';
+    }).join('');
+  }
+  view.innerHTML =
+    '<h1>📬 صندوق البريد</h1>' +
+    '<div class="email-line"><span class="email-addr" dir="ltr">' + esc(email) + '</span>' +
+    '<button class="btn btn-small btn-ghost" onclick="copyText(\'' + esc(email) + '\', this)">نسخ الإيميل</button>' +
+    '<button class="btn btn-small" onclick="loadInbox(currentEmail)">🔄 تحديث</button></div>' +
+    otherEmailFormHTML() +
+    '<p class="sub">' + (messages.length ? messages.length + (messages.length === 1 ? ' رسالة' : ' رسائل') + ' — الأحدث أولاً' : '') + '</p>' +
+    body;
+}
+function renderLoading(email) {
+  document.title = '📬 ' + email + ' | نبيل علي';
+  view.innerHTML =
+    '<h1>📬 صندوق البريد</h1>' +
+    '<div class="email-line"><span class="email-addr" dir="ltr">' + esc(email) + '</span></div>' +
+    '<div class="status"><div class="spinner"></div><p>جاري تحميل الرسائل...</p></div>';
+}
+function renderError(email, detail) {
+  stopRefresh();
+  document.title = 'تعذر التحميل | نبيل علي';
+  view.innerHTML =
+    '<h1>📬 صندوق البريد</h1>' +
+    '<div class="email-line"><span class="email-addr" dir="ltr">' + esc(email) + '</span></div>' +
+    '<div class="error-box"><p>' + esc(detail || 'تعذر تحميل الرسائل حالياً. حاول لاحقاً.') + '</p>' +
+    '<button class="btn" onclick="loadInbox(currentEmail)">🔄 حاول مجدداً</button></div>' +
+    otherEmailFormHTML();
+}
+async function loadInbox(email, silent) {
+  if (loading) return;
+  currentEmail = email;
+  if (API_BASE.indexOf('WORKER-URL-HERE') !== -1) {
+    renderError(email, 'الخدمة قيد الإعداد حالياً — جرّب بعد شوية.');
+    return;
+  }
+  if (!silent) renderLoading(email);
+  loading = true;
+  try {
+    const res = await fetch(API_BASE + '/inbox?email=' + encodeURIComponent(email), { signal: AbortSignal.timeout(15000) });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 404 && data.error === 'DOMAIN_NOT_AVAILABLE') {
+      renderDomainUnavailable(email, email.split('@')[1] || '');
+      return;
+    }
+    if (!res.ok) throw new Error(data.error || 'UPSTREAM_ERROR');
+    renderList(email, Array.isArray(data.messages) ? data.messages : []);
+    startRefresh();
+  } catch (e) {
+    renderError(email);
+  } finally {
+    loading = false;
+  }
+}
+async function openMessage(i) {
+  const m = currentMessages[i];
+  if (!m) return;
+  stopRefresh();
+  const email = currentEmail;
+  view.innerHTML =
+    '<div class="back-row"><button class="btn btn-small btn-ghost" onclick="backToList()">⬅️ رجوع للصندوق</button></div>' +
+    '<div class="status"><div class="spinner"></div><p>جاري تحميل الرسالة...</p></div>';
+  let detail = m;
+  try {
+    const res = await fetch(API_BASE + '/message?email=' + encodeURIComponent(email) + '&id=' + encodeURIComponent(asText(m.id)), { signal: AbortSignal.timeout(15000) });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.message) detail = data.message;
+  } catch (e) { /* fall back to the list item */ }
+  const from = asText(detail.from || detail.sender);
+  const subject = asText(detail.subject);
+  const codes = (detail.codes || m.codes || []).map(asText).filter(Boolean);
+  const links = (detail.links || m.links || []).map(safeUrl).filter(Boolean);
+  const bodyText = asText(detail.text || detail.textBody || detail.body || m.text || m.textBody || '');
+  let html =
+    '<div class="back-row"><button class="btn btn-small btn-ghost" onclick="backToList()">⬅️ رجوع للصندوق</button></div>' +
+    '<h1 style="font-size:1.2rem">' + esc(subject || 'بدون عنوان') + '</h1>' +
+    '<div class="detail-meta">👤 المرسل: <strong>' + esc(from || 'غير معروف') + '</strong><br>🕐 ' + esc(timeAgo(detail.receivedAt || m.receivedAt)) + '</div>';
+  if (codes.length) {
+    html += '<div class="detail-block"><h3>🔑 رمز التحقق</h3><div class="codes">' + codes.map(c =>
+      '<span class="code-chip" onclick="copyText(\'' + esc(c).replace(/'/g, "\\'") + '\', this)">' + esc(c) + ' <span class="copy-hint">نسخ</span></span>').join('') + '</div></div>';
+  }
+  if (links.length) {
+    html += '<div class="detail-block"><h3>🔗 روابط التفعيل</h3>' + links.map(u =>
+      '<div class="link-row"><a href="' + esc(u) + '" target="_blank" rel="noopener" dir="ltr">' + esc(u.length > 80 ? u.slice(0, 80) + '…' : u) + '</a>' +
+      '<button class="btn btn-small btn-ghost" onclick="copyText(\'' + esc(u).replace(/'/g, "\\'") + '\', this)">نسخ</button></div>').join('') + '</div>';
+  }
+  html += '<div class="detail-block"><h3>📄 محتوى الرسالة</h3>' +
+    '<div class="body-box">' + esc(bodyText || 'محتوى الرسالة غير متاح') + '</div></div>';
+  view.innerHTML = html;
+  window.scrollTo({ top: 0 });
+}
+function backToList() {
+  renderList(currentEmail, currentMessages);
+  startRefresh();
+}
+(function init() {
+  const email = emailFromUrl();
+  if (!isEmailShape(email)) { renderNotFound(); return; }
+  const domain = email.split('@')[1];
+  if (VISIBLE_DOMAINS.indexOf(domain) === -1) { renderDomainUnavailable(email, domain); return; }
+  loadInbox(email);
+})();
+</script>
+</body>
+</html>

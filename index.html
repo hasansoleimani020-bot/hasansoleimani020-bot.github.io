@@ -123,6 +123,7 @@
       <a href="#projects" data-ar="مشاريعي" data-en="Projects">مشاريعي</a>
       <a href="#social" data-ar="حساباتي" data-en="Social">حساباتي</a>
       <a href="#bots" data-ar="بوتاتي" data-en="My bots">بوتاتي</a>
+      <a href="#services" data-ar="خدمات مجانية" data-en="Free services">خدمات مجانية</a>
       <a href="#contact" data-ar="تواصل معي" data-en="Contact">تواصل معي</a>
     </div>
     <button class="lang-btn" onclick="toggleLang()" id="langBtn">English</button>
@@ -282,6 +283,34 @@
         <p class="bot-handle" dir="ltr">@e_nnbot</p>
         <p class="bot-desc" data-ar="متجري — أبيع فيه اشتراكات رقمية بأسعار مناسبة." data-en="My store — I sell digital subscriptions at good prices.">متجري — أبيع فيه اشتراكات رقمية بأسعار مناسبة.</p>
         <a href="https://t.me/e_nnbot" target="_blank" rel="noopener" class="btn btn-bot" data-ar="افتح المتجر" data-en="Open store">افتح المتجر</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="services" class="section">
+    <h2 class="reveal" data-ar="خدمات مجانية" data-en="Free services">خدمات مجانية</h2>
+    <p class="section-note reveal" data-ar="خدمات مجانية من موقعي — بدون تسجيل دخول:" data-en="Free services from my website — no sign-in needed:">خدمات مجانية من موقعي — بدون تسجيل دخول:</p>
+    <div class="service-card tilt reveal">
+      <span class="work-icon work-icon-teal"><svg><use href="#icon-mail"/></svg></span>
+      <h3 data-ar="عرض رسائل الإيميل المؤقت" data-en="Temporary email inbox">عرض رسائل الإيميل المؤقت</h3>
+      <p class="service-desc" data-ar="اكتب عنوان الإيميل المؤقت وشوف الرسائل اللي وصلت له — المرسل والعنوان ورمز التحقق." data-en="Type a temporary email address and see the messages it received — sender, subject and verification code.">اكتب عنوان الإيميل المؤقت وشوف الرسائل اللي وصلت له — المرسل والعنوان ورمز التحقق.</p>
+      <form class="service-form" onsubmit="openInbox(event)">
+        <input type="text" id="inboxEmail" dir="ltr" autocomplete="off" data-ph-ar="مثال: name@voewo.com" data-ph-en="e.g. name@voewo.com" placeholder="مثال: name@voewo.com" required>
+        <button type="submit" class="btn btn-primary" data-ar="افتح الصندوق" data-en="Open inbox">افتح الصندوق</button>
+      </form>
+      <p class="service-hint" data-ar="الدومينات المتوفرة — اضغط على واحد حتى يمتلئ الحقل:" data-en="Available domains — tap one to fill the field:">الدومينات المتوفرة — اضغط على واحد حتى يمتلئ الحقل:</p>
+      <div class="chips chips-center service-domains">
+        <span class="chip" dir="ltr">voewo.com</span>
+        <span class="chip" dir="ltr">gmail10p.com</span>
+        <span class="chip" dir="ltr">yanemail.com</span>
+        <span class="chip" dir="ltr">oletters.com</span>
+        <span class="chip" dir="ltr">oemails.com</span>
+        <span class="chip" dir="ltr">oegmail.com</span>
+        <span class="chip" dir="ltr">suiemail.com</span>
+        <span class="chip" dir="ltr">rommiui.com</span>
+        <span class="chip" dir="ltr">tempmail.edu.pl</span>
+        <span class="chip" dir="ltr">gmail.com</span>
+        <span class="chip" dir="ltr">googlemail.com</span>
       </div>
     </div>
   </section>

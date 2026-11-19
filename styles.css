@@ -172,7 +172,7 @@ a.tile-3d:hover, .social-card:hover .tile-3d {
   border-radius: 999px; background: linear-gradient(90deg, #2563eb, #38bdf8);
 }
 .section-note { text-align: center; color: var(--muted); margin-bottom: 1.6rem; }
-.about-card, .contact-card {
+.about-card, .contact-card, .service-card {
   background: var(--card); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 1.8rem;
   box-shadow:
@@ -350,6 +350,24 @@ a.tile-3d:hover, .social-card:hover .tile-3d {
 }
 .contact-form input:focus, .contact-form textarea:focus { outline: 2px solid var(--accent); border-color: transparent; }
 
+/* Free services */
+.service-card { max-width: 640px; margin: 0 auto; text-align: center; }
+.service-card .work-icon { margin-inline: auto; }
+.service-card h3 { font-size: 1.25rem; margin-bottom: .4rem; }
+.service-desc { color: var(--muted); font-size: .97rem; }
+.service-form { display: flex; gap: .6rem; max-width: 560px; margin: 1.2rem auto 0; }
+.service-form input {
+  flex: 1; min-width: 0; padding: .8rem 1rem;
+  border: 1px solid var(--border); border-radius: 10px;
+  font-family: inherit; font-size: 1rem;
+}
+.service-form input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+.service-form .btn-primary { background: var(--accent); color: #fff; white-space: nowrap; }
+.service-form .btn-primary:hover { background: var(--accent-dark); }
+.service-hint { margin-top: 1.4rem; color: var(--muted); font-weight: 600; font-size: .92rem; }
+.service-domains { margin-top: .6rem; }
+.service-domains .chip { cursor: pointer; }
+
 footer { text-align: center; padding: 2rem 1rem; color: var(--muted); border-top: 1px solid var(--border); }
 .footer-brand { font-weight: 800; color: var(--text); margin-bottom: .3rem; }
 
@@ -383,6 +401,8 @@ footer { text-align: center; padding: 2rem 1rem; color: var(--muted); border-top
   .about-photo { width: 150px; height: 150px; }
   .section { padding: 2.4rem 1rem; }
   .about-vision { font-size: 1.08rem; }
+  .service-form { flex-direction: column; }
+  .service-form .btn-primary { width: 100%; }
 }
 
 /* Respect reduced-motion preferences */
