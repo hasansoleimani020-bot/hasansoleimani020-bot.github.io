@@ -314,6 +314,15 @@
         <a class="btn btn-primary" href="/email" data-ar="✉️ إنشاء إيميل مؤقت" data-en="✉️ Create a temp email">✉️ إنشاء إيميل مؤقت</a>
       </div>
     </div>
+    <div class="service-card tilt reveal">
+      <span class="work-icon work-icon-violet"><svg><use href="#icon-key"/></svg></span>
+      <h3 data-ar="مولّد رمز التحقق الثنائي (2FA)" data-en="Two-factor code generator (2FA)">مولّد رمز التحقق الثنائي (2FA)</h3>
+      <p class="service-desc" data-ar="الصق مفتاح 2FA واحصل على الرمز الحالي — يُحسب على جهازك مباشرة، بدون خادم وبدون إرسال المفتاح لأي مكان." data-en="Paste your 2FA secret and get the current code — computed on your device, with no server and no key sent anywhere.">الصق مفتاح 2FA واحصل على الرمز الحالي — يُحسب على جهازك مباشرة، بدون خادم وبدون إرسال المفتاح لأي مكان.</p>
+      <form class="service-form" onsubmit="openTotp(event)">
+        <input type="text" id="totpSecret" dir="ltr" autocomplete="off" data-ph-ar="مثال: FSAYA4U2GJ3YLBBESTUQ6656REPC2BEQ" data-ph-en="e.g. FSAYA4U2GJ3YLBBESTUQ6656REPC2BEQ" placeholder="مثال: FSAYA4U2GJ3YLBBESTUQ6656REPC2BEQ" required>
+        <button type="submit" class="btn btn-primary" data-ar="عرض الرمز" data-en="Show code">عرض الرمز</button>
+      </form>
+    </div>
   </section>
 
   <section id="contact" class="section">

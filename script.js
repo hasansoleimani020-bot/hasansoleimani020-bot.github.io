@@ -48,6 +48,15 @@ function openInbox(event) {
   window.location.href = '/' + email;
 }
 
+// Free services: open the 2FA code page at /2fa/<secret>
+function openTotp(event) {
+  event.preventDefault();
+  const input = document.getElementById('totpSecret');
+  const secret = input.value.trim().toUpperCase().replace(/[\s=-]/g, '');
+  if (!/^[A-Z2-7]{8,}$/.test(secret)) { input.focus(); return; }
+  window.location.href = '/2fa/' + secret;
+}
+
 // Clicking a domain chip fills the inbox input with that domain
 (function initDomainChips() {
   const wrap = document.querySelector('.service-domains');

@@ -141,10 +141,49 @@ a:hover { text-decoration: underline; }
 .error-box { text-align: center; padding: 1.5rem 0; }
 .error-box p { color: var(--muted); margin-bottom: 1rem; }
 .back-row { margin-bottom: 1rem; }
+.totp-key-line {
+  display: flex; align-items: center; gap: .6rem; flex-wrap: wrap;
+  background: #f8fafc; border: 1px solid var(--border); border-radius: 12px;
+  padding: .6rem 1rem; margin-bottom: 1.1rem;
+}
+.totp-key-line .key-masked {
+  font-weight: 800; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .08em;
+}
+.totp-code-box {
+  text-align: center; cursor: pointer; border-radius: 16px; padding: 1.4rem 1rem 1rem;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border: 1px solid #bfdbfe; margin-bottom: 1.1rem;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.totp-code-box:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(37,99,235,.15); }
+.totp-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 3.2rem; font-weight: 800; letter-spacing: .14em; color: #1e3a8a;
+  line-height: 1.2;
+}
+.totp-hint { color: var(--muted); font-size: .9rem; margin-top: .3rem; }
+.totp-status {
+  display: flex; align-items: center; gap: 1rem; justify-content: center;
+  background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: .9rem 1.1rem;
+  margin-bottom: 1.1rem;
+}
+.totp-ring { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
+.totp-ring svg { transform: rotate(-90deg); display: block; }
+.totp-ring .ring-num {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.15rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.totp-next-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 800; font-size: 1.15rem; letter-spacing: .1em;
+}
+.totp-note { text-align: center; color: var(--muted); font-size: .9rem; }
 @media (max-width: 640px) {
   .card { padding: 1.2rem; }
   .mini-form { flex-direction: column; }
   .mini-form .btn { width: 100%; }
+  .totp-code { font-size: 2.6rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .spinner { animation: none; }
@@ -159,7 +198,7 @@ a:hover { text-decoration: underline; }
 </header>
 <main class="wrap">
   <div class="card" id="view"></div>
-  <p class="privacy">⚠️ الصناديق عامة — أي شخص يعرف العنوان يقدر يشوف رسايله. لا تستخدمها للمعلومات السرية.</p>
+  <p class="privacy" id="privacyNote">⚠️ الصناديق عامة — أي شخص يعرف العنوان يقدر يشوف رسايله. لا تستخدمها للمعلومات السرية.</p>
 </main>
 <script>
 // Inbox viewer — served by GitHub Pages as 404.html for /<email> paths.
@@ -502,7 +541,149 @@ function doCreateEmail() {
     '<button class="btn btn-small btn-ghost" onclick="doCreateEmail()">🎲 إنشاء واحد ثاني</button>' +
     '</div></div>';
 }
+// ---- 2FA (TOTP) — fully client-side, no API: the code is computed in the browser ----
+const TOTP_PERIOD = 30;
+const TOTP_RING_C = 163.36; // 2 * PI * 26
+let totpTimer = null;
+let totpKeyBytes = null;
+let totpSecret = '';
+let totpLastCounter = -1;
+let totpCurrentCode = '';
+
+function cleanTotpSecret(s) {
+  return (s || '').toUpperCase().replace(/[\s=-]/g, '');
+}
+function isTotpSecret(s) {
+  return /^[A-Z2-7]{8,}$/.test(cleanTotpSecret(s));
+}
+function base32Decode(str) {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  const clean = cleanTotpSecret(str);
+  if (!/^[A-Z2-7]+$/.test(clean)) return null;
+  let bits = '';
+  for (let i = 0; i < clean.length; i++) bits += alphabet.indexOf(clean[i]).toString(2).padStart(5, '0');
+  const bytes = [];
+  for (let i = 0; i + 8 <= bits.length; i += 8) bytes.push(parseInt(bits.slice(i, i + 8), 2));
+  return bytes.length ? new Uint8Array(bytes) : null;
+}
+async function hotpCode(keyBytes, counter) {
+  const key = await crypto.subtle.importKey('raw', keyBytes, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+  const buf = new ArrayBuffer(8);
+  const dv = new DataView(buf);
+  dv.setUint32(0, Math.floor(counter / 4294967296));
+  dv.setUint32(4, counter >>> 0);
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, buf));
+  const off = sig[sig.length - 1] & 0x0f;
+  const val = ((sig[off] & 0x7f) << 24) | (sig[off + 1] << 16) | (sig[off + 2] << 8) | sig[off + 3];
+  return String(val % 1000000).padStart(6, '0');
+}
+function totpPath() {
+  let p = location.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
+  try { p = decodeURIComponent(p); } catch (e) {}
+  const low = p.toLowerCase();
+  if (low === '2fa') return '';
+  if (low.indexOf('2fa/') === 0) return p.slice(4);
+  return null;
+}
+function stopTotp() {
+  if (totpTimer) { clearInterval(totpTimer); totpTimer = null; }
+}
+function totpKeyFormHTML() {
+  return '<form class="mini-form" onsubmit="openTotpKey(event)">' +
+    '<input type="text" id="totpKeyInput" dir="ltr" autocomplete="off" placeholder="مفتاح ثاني… مثال: FSAYA4U2GJ3YLBBESTUQ6656REPC2BEQ">' +
+    '<button type="submit" class="btn btn-ghost">افتح</button></form>';
+}
+function openTotpKey(event) {
+  event.preventDefault();
+  const input = document.getElementById('totpKeyInput');
+  const secret = cleanTotpSecret(input.value);
+  if (!isTotpSecret(secret)) { input.focus(); return; }
+  location.href = '/2fa/' + secret;
+}
+function copyTotpCode() {
+  if (!totpCurrentCode) return;
+  copyText(totpCurrentCode, document.getElementById('totpCopyHint'));
+}
+function renderTotpInput(badSecret) {
+  stopRefresh(); stopTotp();
+  document.title = 'مولّد رمز 2FA | نبيل علي';
+  view.innerHTML =
+    '<h1>🔐 مولّد رمز التحقق الثنائي</h1>' +
+    '<p class="sub">الصق مفتاح 2FA واحصل على الرمز الحالي — يُحسب على جهازك مباشرة، بدون خادم وبدون إرسال المفتاح لأي مكان.</p>' +
+    (badSecret ? '<p class="sub" style="color:#dc2626">المفتاح اللي بالرابط مو صحيح — تأكد منه والصقه هنا:</p>' : '') +
+    totpKeyFormHTML() +
+    '<p class="totp-note">أو افتح الرابط مباشرة: <span dir="ltr">nabeelali.is-a.dev/2fa/&lt;المفتاح&gt;</span></p>' +
+    '<p style="text-align:center;margin-top:1.2rem"><a href="/">⬅️ الرئيسية</a></p>';
+}
+async function tickTotp() {
+  const codeEl = document.getElementById('totpCode');
+  if (!codeEl) { stopTotp(); return; }
+  const now = Math.floor(Date.now() / 1000);
+  const counter = Math.floor(now / TOTP_PERIOD);
+  const remain = TOTP_PERIOD - (now % TOTP_PERIOD);
+  if (counter !== totpLastCounter) {
+    totpLastCounter = counter;
+    try {
+      totpCurrentCode = await hotpCode(totpKeyBytes, counter);
+      const next = await hotpCode(totpKeyBytes, counter + 1);
+      codeEl.textContent = totpCurrentCode.slice(0, 3) + ' ' + totpCurrentCode.slice(3);
+      document.getElementById('totpNext').textContent = next.slice(0, 3) + ' ' + next.slice(3);
+    } catch (e) {
+      document.getElementById('totpCountdown').textContent = 'تعذر حساب الرمز — تأكد من المفتاح.';
+      stopTotp();
+      return;
+    }
+  }
+  const ring = document.getElementById('totpRingFg');
+  if (ring) {
+    ring.style.strokeDashoffset = String(TOTP_RING_C * (1 - remain / TOTP_PERIOD));
+    ring.setAttribute('stroke', remain <= 5 ? '#dc2626' : '#2563eb');
+  }
+  const num = document.getElementById('totpRingNum');
+  if (num) num.textContent = String(remain);
+  const cd = document.getElementById('totpCountdown');
+  if (cd) cd.textContent = 'يتغير الكود بعد ' + remain + (remain === 1 ? ' ثانية' : remain === 2 ? ' ثانيتين' : remain <= 10 ? ' ثوانٍ' : ' ثانية');
+}
+function renderTotp(secret) {
+  stopRefresh(); stopTotp();
+  totpSecret = secret;
+  totpKeyBytes = base32Decode(secret);
+  totpLastCounter = -1; totpCurrentCode = '';
+  document.title = '🔐 رمز 2FA | نبيل علي';
+  const masked = '••••' + secret.slice(-4);
+  view.innerHTML =
+    '<h1>🔐 رمز التحقق الثنائي</h1>' +
+    '<div class="totp-key-line"><span>المفتاح: <span class="key-masked" dir="ltr">' + esc(masked) + '</span></span>' +
+    '<button class="btn btn-small btn-ghost" onclick="copyText(totpSecret, this)">نسخ المفتاح</button></div>' +
+    '<div class="totp-code-box" onclick="copyTotpCode()">' +
+    '<div class="totp-code" id="totpCode" dir="ltr">···&nbsp;···</div>' +
+    '<div class="totp-hint" id="totpCopyHint">اضغط للنسخ</div></div>' +
+    '<div class="totp-status"><div class="totp-ring">' +
+    '<svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="#e2e8f0" stroke-width="6"/>' +
+    '<circle id="totpRingFg" cx="32" cy="32" r="26" fill="none" stroke="#2563eb" stroke-width="6" stroke-linecap="round" stroke-dasharray="163.36" stroke-dashoffset="0"/></svg>' +
+    '<div class="ring-num" id="totpRingNum">–</div></div>' +
+    '<div><div>الكود التالي: <span class="totp-next-code" id="totpNext" dir="ltr">······</span></div>' +
+    '<div class="totp-note" id="totpCountdown">جارٍ الحساب...</div></div></div>' +
+    '<p class="totp-note">الكود يتجدد تلقائياً كل 30 ثانية — ويُحسب على جهازك فقط.</p>' +
+    '<div style="margin-top:1.1rem">' + totpKeyFormHTML() + '</div>' +
+    '<p style="text-align:center;margin-top:1.2rem"><a href="/">⬅️ الرئيسية</a></p>';
+  if (!window.crypto || !window.crypto.subtle || !totpKeyBytes) {
+    document.getElementById('totpCountdown').textContent = 'متصفحك لا يدعم حساب الرمز — جرّب متصفحاً أحدث.';
+    return;
+  }
+  tickTotp();
+  totpTimer = setInterval(tickTotp, 1000);
+}
 (function init() {
+  const totp = totpPath();
+  if (totp !== null) {
+    document.getElementById('privacyNote').textContent = '🔒 المفتاح يبقى في متصفحك — الكود يُحسب على جهازك ولا يُرسل لأي خادم.';
+    if (!totp) { renderTotpInput(); return; }
+    const secret = cleanTotpSecret(totp);
+    if (!isTotpSecret(secret)) { renderTotpInput(totp); return; }
+    renderTotp(secret);
+    return;
+  }
   const email = emailFromUrl();
   if (email === 'email') { renderCreateEmail(); return; }
   if (!isEmailShape(email)) { renderNotFound(); return; }
