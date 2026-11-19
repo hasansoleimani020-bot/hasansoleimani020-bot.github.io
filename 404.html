@@ -129,6 +129,7 @@ a:hover { text-decoration: underline; }
   padding: 1rem; white-space: pre-wrap; word-break: break-word;
   font-size: .95rem;
 }
+.body-box a { text-decoration: underline; }
 .chips { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; margin-top: .8rem; }
 .chip {
   padding: .4rem .95rem; border-radius: 999px; background: #eef2ff;
@@ -390,6 +391,17 @@ async function loadInbox(email, silent) {
     loading = false;
   }
 }
+function bodySegmentsHTML(detail, m) {
+  const segs = detail.segments || m.segments;
+  if (!Array.isArray(segs) || !segs.length) return null;
+  return segs.map(s => {
+    if (s && s.t === 'link') {
+      const u = safeUrl(s.u);
+      if (u) return '<a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(asText(s.v)) + '</a>';
+    }
+    return esc(asText(s ? s.v : ''));
+  }).join('');
+}
 async function openMessage(i) {
   const m = currentMessages[i];
   if (!m) return;
@@ -422,8 +434,9 @@ async function openMessage(i) {
       '<div class="link-row"><a href="' + esc(u) + '" target="_blank" rel="noopener" dir="ltr">' + esc(u.length > 80 ? u.slice(0, 80) + '…' : u) + '</a>' +
       '<button class="btn btn-small btn-ghost" onclick="copyText(\'' + esc(u).replace(/'/g, "\\'") + '\', this)">نسخ</button></div>').join('') + '</div>';
   }
+  const segHtml = bodySegmentsHTML(detail, m);
   html += '<div class="detail-block"><h3>📄 محتوى الرسالة</h3>' +
-    '<div class="body-box">' + esc(bodyText || 'محتوى الرسالة غير متاح') + '</div></div>';
+    '<div class="body-box">' + (segHtml != null ? segHtml : esc(bodyText || 'محتوى الرسالة غير متاح')) + '</div></div>';
   view.innerHTML = html;
   window.scrollTo({ top: 0 });
 }
